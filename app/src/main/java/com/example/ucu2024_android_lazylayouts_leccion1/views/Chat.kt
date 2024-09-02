@@ -1,9 +1,11 @@
 package com.example.ucu2024_android_lazylayouts_leccion1.views
 
+import android.graphics.Paint.Align
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,15 +14,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -28,11 +37,13 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
@@ -41,11 +52,13 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.ucu2024_android_lazylayouts_leccion1.R
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Contacto
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Conversacion
 import com.example.ucu2024_android_lazylayouts_leccion1.models.TiposConversacion
+import com.example.ucu2024_android_lazylayouts_leccion1.ui.theme.alt.Ucu2024androidlazylayoutsleccion1Theme
 import com.example.ucu2024_android_lazylayouts_leccion1.utils.ContactosPrecarga
 import com.example.ucu2024_android_lazylayouts_leccion1.utils.PrecargarDatos
 import java.time.LocalDate
@@ -57,22 +70,32 @@ import java.util.Locale
 
 @Composable
 fun ChatView(innerPadding: PaddingValues) {
-    val precargaDeDatos: ContactosPrecarga = PrecargarDatos()
+    val precargaDeDatos: MutableState<ContactosPrecarga> = remember { mutableStateOf(PrecargarDatos()) }
 
-    val usuarioActivo: Contacto = precargaDeDatos.Usuario
-    val conversaciones: MutableList<Conversacion> = precargaDeDatos.Conversaciones
-    val conversacionesNoLeidas: Int =
-        conversaciones.count { it.GetMensajesNuevos(usuarioActivo.Id) > 0 }
+    val usuarioActivo: Contacto = precargaDeDatos.value.Usuario
+    val conversaciones: MutableList<Conversacion> = precargaDeDatos.value.Conversaciones
+    val conversacionesNoLeidas: Int = precargaDeDatos.value.ConversacionesNoLeidas
+
+    val conversacionesItems: MutableState<List<ConversacionesItem>> = remember { mutableStateOf(
+        conversaciones.map { ConversacionesItem(
+            it.GetImagen(usuarioActivo.Id),
+            it.GetNombre(usuarioActivo.Id),
+            it.GetUltimoMensaje()?.Contenido,
+            it.GetMensajesNuevos(usuarioActivo.Id),
+            it.GetUltimoMensaje()?.Enviado,
+            it.tipo!!,
+        ) }
+    ) }
 
     Column(
         modifier = Modifier
             .padding(innerPadding)
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary),
+            .background(MaterialTheme.colorScheme.surface),
     ) {
         HeaderComponent()
         TabSelectorComponent(conversacionesNoLeidas)
-        ChatContents(usuarioActivo, conversaciones)
+        ChatContentsWrapper(usuarioActivo, conversacionesItems.value)
     }
 }
 
@@ -88,20 +111,20 @@ internal fun HeaderComponent() {
             text = "Chaldea's Chat",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .padding(horizontal = 30.dp)
                 .align(Alignment.CenterVertically)
         )
         Row {
             IconButton(onClick = { /*TODO*/ }) {
-                Icon(painter = painterResource(id = R.drawable.outline_photo_camera_24), contentDescription = "Camara", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(painter = painterResource(id = R.drawable.outline_photo_camera_24), contentDescription = "Camara", tint = MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = { /*TODO*/ }) {
-                Icon(painter = painterResource(id = R.drawable.outline_search_24), contentDescription = "Búsqueda", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(painter = painterResource(id = R.drawable.outline_search_24), contentDescription = "Búsqueda", tint = MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = { /*TODO*/ }) {
-                Icon(painter = painterResource(id = R.drawable.outline_more_vert_24), contentDescription = "Opciones", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(painter = painterResource(id = R.drawable.outline_more_vert_24), contentDescription = "Opciones", tint = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -120,21 +143,22 @@ internal fun TabSelectorComponent(conversacionesNoLeidas: Int) {
     val tabs: List<TabItem> = listOf(
         TabItem(0, null, R.drawable.baseline_groups_24, null),
         TabItem(1, "Chats", null, "$conversacionesNoLeidas"),
-        TabItem(2, "Status", null, null),
+        TabItem(2, "Status", null,
+            null),
         TabItem(3, "Calls", null, null),
     )
 
     TabRow(
         selectedTabIndex = tabIndex,
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        indicator = @Composable { tabPositions ->
-            TabRowDefaults.SecondaryIndicator(
-                Modifier.tabIndicatorOffset(tabPositions[tabIndex]),
-                color = MaterialTheme.colorScheme.onPrimary,
-                height = 3.dp,
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+//        indicator = @Composable { tabPositions ->
+//            TabRowDefaults.SecondaryIndicator(
+//                Modifier.tabIndicatorOffset(tabPositions[tabIndex]),
+//                color = MaterialTheme.colorScheme.onSurface,
+//                height = 3.dp,
+//            )
+//        },
     ) {
         tabs.forEach {
             TabItemComponent(it, tabIndex == it.index)
@@ -154,16 +178,19 @@ internal fun TabItemComponent(tabItem: TabItem, selected: Boolean) {
             Icon(
                 painter = painterResource(id = tabItem.icon),
                 contentDescription = "${tabItem.label}",
-                tint = MaterialTheme.colorScheme.onPrimary,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         else if (tabItem.label != null && tabItem.indicator != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = tabItem.label)
+                Text(
+                    text = tabItem.label,
+                    style = MaterialTheme.typography.titleMedium,
+                )
                 Badge(
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .padding(start = (5 + 0.8 * tabItem.indicator.length).dp),
                 ) {
@@ -172,7 +199,10 @@ internal fun TabItemComponent(tabItem: TabItem, selected: Boolean) {
             }
         }
         else if (tabItem.label != null)
-            Text(text = tabItem.label)
+            Text(
+                text = tabItem.label,
+                style = MaterialTheme.typography.titleMedium,
+            )
     }
 }
 
@@ -186,10 +216,35 @@ internal data class ConversacionesItem(
 )
 
 @Composable
-internal fun ChatContents(usuario: Contacto, conversaciones: MutableList<Conversacion>) {
+internal fun ChatContentsWrapper(usuario: Contacto, conversaciones: List<ConversacionesItem>) {
+    Box(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .fillMaxSize(),
+    ) {
+        ChatContents(usuario, conversaciones)
+        FloatingActionButton(
+            onClick = { /*TODO*/ },
+            shape = CircleShape,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(25.dp),
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_chat_24),
+                contentDescription = "New chat",
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ChatContents(usuario: Contacto, conversaciones: List<ConversacionesItem>) {
     LazyColumn(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            //.background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxSize(),
     ) {
         item {
@@ -198,15 +253,7 @@ internal fun ChatContents(usuario: Contacto, conversaciones: MutableList<Convers
         item {
             ChatContentsItemGeneral(texto = "Archived", icono = R.drawable.outline_lock_24, indicador = "8")
         }
-        items(conversaciones.map { ConversacionesItem(
-                it.GetImagen(usuario.Id),
-                it.GetNombre(usuario.Id),
-                it.GetUltimoMensaje()?.Contenido,
-                it.GetMensajesNuevos(usuario.Id),
-                it.GetUltimoMensaje()?.Enviado,
-                it.tipo!!,
-            ) }.sortedByDescending { it.ultimaActividad }
-        ) {
+        items(conversaciones) {
             ChatContentsItemConversacion(it)
         }
     }
@@ -233,6 +280,7 @@ internal fun ChatContentsItemGeneral(texto: String, icono: Int, indicador: Strin
                 Icon(
                     painter = painterResource(id = icono),
                     contentDescription = texto,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(start = 10.dp, end = 25.dp)
                         .width(30.dp)
@@ -241,13 +289,14 @@ internal fun ChatContentsItemGeneral(texto: String, icono: Int, indicador: Strin
                 Text(
                     text = texto,
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
             }
             if (indicador != null)
                 Badge(
                     containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
                     Text(text = indicador)
                 }
@@ -317,12 +366,14 @@ internal fun ChatContentsItemConversacion(conversacion: ConversacionesItem) {
                         text = conversacion.nombre,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false,
                     )
                     Text(
                         text = timeStamp,
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .alpha(0.7f),
                     )
@@ -337,6 +388,7 @@ internal fun ChatContentsItemConversacion(conversacion: ConversacionesItem) {
                         text = conversacion.ultimoMensaje?:"No messages.",
                         style = MaterialTheme.typography.bodyMedium,
                         fontStyle = if (conversacion.ultimoMensaje == null) FontStyle.Italic else null,
+                        color = MaterialTheme.colorScheme.onSurface,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false,
                         modifier = Modifier
@@ -345,6 +397,8 @@ internal fun ChatContentsItemConversacion(conversacion: ConversacionesItem) {
                     )
                     if (conversacion.noLeidos > 0)
                         Badge(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                 .padding(start = 5.dp)
                         ) {
@@ -359,5 +413,9 @@ internal fun ChatContentsItemConversacion(conversacion: ConversacionesItem) {
 @Preview(showBackground = true)
 @Composable
 fun ChatViewPreview() {
-    ChatView(innerPadding = PaddingValues(0.dp))
+    Ucu2024androidlazylayoutsleccion1Theme {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            ChatView(innerPadding)
+        }
+    }
 }
