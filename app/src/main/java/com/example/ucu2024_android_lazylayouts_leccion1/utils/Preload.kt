@@ -15,6 +15,7 @@ data class ContactosPrecarga internal constructor(
     val Usuario: Contacto,
     val Contactos: MutableList<Contacto>,
     val Conversaciones: MutableList<Conversacion>,
+    val ConversacionesNoLeidas: Int,
 )
 
 internal fun GetContactos(): MutableMap<String, Contacto> {
@@ -384,7 +385,7 @@ internal fun GetConversaciones(contactos: MutableMap<String, Contacto>, usuario:
         ZonedDateTime.now(zone).minusDays(1).minusHours(4).minusMinutes(80)))
 
 
-    return conversaciones.values.toMutableList()
+    return conversaciones.values.sortedByDescending { it.GetUltimoMensaje()?.Enviado }.toMutableList()
 }
 
 fun PrecargarDatos(): ContactosPrecarga {
@@ -398,5 +399,6 @@ fun PrecargarDatos(): ContactosPrecarga {
         Usuario = usuario,
         Contactos = contactos,
         Conversaciones = conversaciones,
+        ConversacionesNoLeidas = conversaciones.count { it.GetMensajesNuevos(usuario.Id) > 0 },
     )
 }
