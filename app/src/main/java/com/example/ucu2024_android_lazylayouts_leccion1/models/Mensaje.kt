@@ -1,18 +1,20 @@
 package com.example.ucu2024_android_lazylayouts_leccion1.models
 
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Date
 import java.util.UUID
 
 class Mensaje(
     contenido: String,
     val Emisor: UUID,
-    val Enviado: Date,
+    val Enviado: ZonedDateTime,
 ) {
     var Contenido: String = contenido
         private set
 
-    var Modificado: Date? = null
+    var Modificado: ZonedDateTime? = null
         private set
 
     var Eliminado: Boolean = false
@@ -22,7 +24,7 @@ class Mensaje(
     constructor(contenido: String, emisor: UUID) : this(
         contenido = contenido,
         Emisor = emisor,
-        Enviado = Date.from(Instant.now())
+        Enviado = ZonedDateTime.now(ZoneId.of("America/Montevideo"))
     )
 
     private constructor(original: Mensaje) : this(
@@ -38,14 +40,14 @@ class Mensaje(
     fun Editar(contenido: String) {
         if (!Eliminado) {
             Contenido = contenido
-            Modificado = Date.from(Instant.now())
+            Modificado = ZonedDateTime.now(ZoneId.of("America/Montevideo"))
         }
         else throw IllegalStateException("El mensaje ha sido eliminado.")
     }
 
     fun ToggleEliminado() {
         Eliminado = !Eliminado
-        Modificado = Date.from(Instant.now())
+        Modificado = ZonedDateTime.now(ZoneId.of("America/Montevideo"))
     }
 
     fun Clonar(): Mensaje {
