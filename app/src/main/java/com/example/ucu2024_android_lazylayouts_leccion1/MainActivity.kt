@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.ucu2024_android_lazylayouts_leccion1.ui.theme.Ucu2024androidlazylayoutsleccion1Theme
+import com.example.ucu2024_android_lazylayouts_leccion1.ui.theme.alt.Ucu2024androidlazylayoutsleccion1Theme
 import com.example.ucu2024_android_lazylayouts_leccion1.views.ChatView
 
 class MainActivity : ComponentActivity() {
