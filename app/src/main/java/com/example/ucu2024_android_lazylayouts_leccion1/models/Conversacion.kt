@@ -2,10 +2,8 @@ package com.example.ucu2024_android_lazylayouts_leccion1.models
 
 import androidx.compose.ui.util.fastMap
 import com.example.ucu2024_android_lazylayouts_leccion1.R
-import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.Date
 import java.util.UUID
 
 class Conversacion private constructor(miembros: MutableList<Contacto>, val id: UUID) {

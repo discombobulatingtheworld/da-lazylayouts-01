@@ -1,6 +1,5 @@
 package com.example.ucu2024_android_lazylayouts_leccion1.views
 
-import android.graphics.Paint.Align
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,17 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,8 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,7 +44,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.ucu2024_android_lazylayouts_leccion1.R
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Contacto
@@ -95,7 +86,7 @@ fun ChatView(innerPadding: PaddingValues) {
     ) {
         HeaderComponent()
         TabSelectorComponent(conversacionesNoLeidas)
-        ChatContentsWrapper(usuarioActivo, conversacionesItems.value)
+        ChatContentsWrapper(conversacionesItems.value)
     }
 }
 
@@ -139,7 +130,7 @@ internal data class TabItem(
 
 @Composable
 internal fun TabSelectorComponent(conversacionesNoLeidas: Int) {
-    var tabIndex = 1
+    val tabIndex = 1
     val tabs: List<TabItem> = listOf(
         TabItem(0, null, R.drawable.baseline_groups_24, null),
         TabItem(1, "Chats", null, "$conversacionesNoLeidas"),
@@ -152,13 +143,6 @@ internal fun TabSelectorComponent(conversacionesNoLeidas: Int) {
         selectedTabIndex = tabIndex,
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
-//        indicator = @Composable { tabPositions ->
-//            TabRowDefaults.SecondaryIndicator(
-//                Modifier.tabIndicatorOffset(tabPositions[tabIndex]),
-//                color = MaterialTheme.colorScheme.onSurface,
-//                height = 3.dp,
-//            )
-//        },
     ) {
         tabs.forEach {
             TabItemComponent(it, tabIndex == it.index)
@@ -216,13 +200,13 @@ internal data class ConversacionesItem(
 )
 
 @Composable
-internal fun ChatContentsWrapper(usuario: Contacto, conversaciones: List<ConversacionesItem>) {
+internal fun ChatContentsWrapper(conversaciones: List<ConversacionesItem>) {
     Box(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxSize(),
     ) {
-        ChatContents(usuario, conversaciones)
+        ChatContents(conversaciones)
         FloatingActionButton(
             onClick = { /*TODO*/ },
             shape = CircleShape,
@@ -241,10 +225,9 @@ internal fun ChatContentsWrapper(usuario: Contacto, conversaciones: List<Convers
 }
 
 @Composable
-internal fun ChatContents(usuario: Contacto, conversaciones: List<ConversacionesItem>) {
+internal fun ChatContents(conversaciones: List<ConversacionesItem>) {
     LazyColumn(
         modifier = Modifier
-            //.background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxSize(),
     ) {
         item {

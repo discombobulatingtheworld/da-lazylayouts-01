@@ -4,11 +4,8 @@ import com.example.ucu2024_android_lazylayouts_leccion1.R
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Contacto
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Conversacion
 import com.example.ucu2024_android_lazylayouts_leccion1.models.Mensaje
-import java.time.Duration
-import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.Date
 
 
 data class ContactosPrecarga internal constructor(
